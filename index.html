@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FakeStore - Tienda Online</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <i class="fas fa-store"></i>
+                FakeStore
+            </h1>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="cart-icon" id="cartIcon">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </div>
+            
+            <!-- MODO OSCURO -->
+            <button class="dark-mode-toggle" id="darkModeToggle" onclick="app.toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+            </button>
+            
+            <!-- BOTÓN DE FUNCIONALIDADES -->
+            <button class="features-toggle" id="featuresToggle" onclick="app.toggleSettingsSidebar()">
+                <i class="fas fa-cog"></i>
+            </button>
+            
+            <!-- BOTÓN DE USUARIO/LOGOUT -->
+            <div class="user-section" id="userSection" style="display: none;">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userName">Usuario</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Filters Section -->
+            <section class="filters-section">
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label for="categoryFilter">Categoría:</label>
+                        <select id="categoryFilter" class="filter-select">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="sortFilter">Ordenar por:</label>
+                        <select id="sortFilter" class="filter-select">
+                            <option value="">Sin ordenar</option>
+                            <option value="price-asc">Precio: Menor a Mayor</option>
+                            <option value="price-desc">Precio: Mayor a Menor</option>
+                            <option value="name-asc">Nombre: A-Z</option>
+                            <option value="name-desc">Nombre: Z-A</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="priceRange">Rango de precio:</label>
+                        <input type="range" id="priceRange" min="0" max="1000" value="1000" class="price-range">
+                        <span id="priceValue">$1000</span>
+                    </div>
+                </div>
+                
+                <!-- FILTROS AVANZADOS -->
+                <div class="advanced-filters">
+                    <h4>Filtros Avanzados</h4>
+                    <div class="filter-row">
+                        <label for="ratingFilter">Rating mínimo:</label>
+                        <div class="rating-filter">
+                            <input type="range" id="ratingFilter" min="0" max="5" value="0" step="0.5">
+                            <span id="ratingValue" class="rating-value">0</span>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <label for="stockFilter">Solo en stock:</label>
+                        <input type="checkbox" id="stockFilter" checked>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Grid -->
+            <section class="products-section">
+                <div class="products-grid" id="productsGrid">
+                    <!-- Los productos se renderizarán dinámicamente aquí -->
+                </div>
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Cargando productos...</p>
+                </div>
+                <div class="no-products" id="noProducts" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <p>No se encontraron productos</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Carrito de Compras</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Los items del carrito se renderizarán aquí -->
+        </div>
+        
+        <!-- SISTEMA DE CUPONES EN EL CARRITO -->
+        <div class="coupon-section">
+            <h4><i class="fas fa-ticket-alt"></i> Aplicar Cupón</h4>
+            <div class="coupon-input-group">
+                <input type="text" id="couponInput" placeholder="Código de cupón" class="coupon-input">
+                <button id="couponApplyBtn" class="coupon-apply-btn" onclick="app.applyCoupon(document.getElementById('couponInput').value)">
+                    Aplicar
+                </button>
+            </div>
+            <button id="couponRemoveBtn" class="coupon-remove-btn" onclick="app.removeCoupon()" disabled>
+                Remover Cupón
+            </button>
+            <div id="discountDisplay" class="discount-display">Ningún descuento aplicado</div>
+        </div>
+        
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">$0.00</span>
+            </div>
+            <button class="checkout-btn" id="checkoutBtn">
+                <i class="fas fa-credit-card"></i>
+                Finalizar Compra
+            </button>
+            <button class="clear-cart-btn" id="clearCartBtn">
+                <i class="fas fa-trash"></i>
+                Vaciar Carrito
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Sidebar -->
+    <div class="settings-sidebar" id="settingsSidebar">
+        <div class="settings-header">
+            <h3><i class="fas fa-cog"></i> Funcionalidades</h3>
+            <button class="close-settings" id="closeSettings">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="settings-content">
+            <!-- SISTEMA DE FAVORITOS -->
+            <div class="settings-section">
+                <h4><i class="fas fa-heart"></i> Mis Favoritos</h4>
+                <div id="favoritesList" class="settings-list">
+                    <!-- Los favoritos se renderizarán aquí -->
+                </div>
+            </div>
+            
+            <!-- HISTORIAL DE PRODUCTOS VISTOS -->
+            <div class="settings-section">
+                <h4><i class="fas fa-eye"></i> Productos Vistos</h4>
+                <div id="viewedList" class="settings-list">
+                    <!-- Los productos vistos se renderizarán aquí -->
+                </div>
+            </div>
+            
+            <!-- COMPARADOR DE PRODUCTOS -->
+            <div class="settings-section">
+                <h4><i class="fas fa-balance-scale"></i> Comparar Productos</h4>
+                <div id="compareList" class="settings-list">
+                    <!-- Los productos a comparar se renderizarán aquí -->
+                </div>
+                <button id="compareBtn" class="compare-btn" onclick="app.showCompareModal()" disabled>
+                    <i class="fas fa-balance-scale"></i>
+                    Comparar (0/3)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Overlay -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    
+    <!-- Settings Overlay -->
+    <div class="settings-overlay" id="settingsOverlay"></div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>¡Compra Exitosa!</h3>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <i class="fas fa-check-circle success-icon"></i>
+                <p>Tu pedido ha sido procesado correctamente.</p>
+                <p>Gracias por tu compra en FakeStore.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="continueShopping">Continuar Comprando</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compare Modal -->
+    <div class="modal" id="compareModal">
+        <div class="modal-content compare-modal">
+            <div class="modal-header">
+                <h3>Comparar Productos</h3>
+                <button class="close-modal" id="closeCompareModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="compareProducts" class="compare-products">
+                    <!-- Los productos se renderizarán aquí -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="clearCompare">Limpiar Comparación</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="script.js"></script>
+</body>
+</html>
