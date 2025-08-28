@@ -19,6 +19,7 @@ Una aplicación web de e-commerce completa y modular construida con JavaScript v
 - **Sistema de valoraciones** ⭐
 - **Notificaciones** 🔔
 - **Modo oscuro** 🌙
+- **Sistema de paginación** 📄
 
 ## 🎯 Configuración Rápida
 
@@ -34,7 +35,8 @@ const ACTIVATE_FEATURES = [
     'viewed',         // Historial de productos vistos
     'coupons',        // Sistema de cupones
     'notifications',  // Sistema de notificaciones
-    'darkMode'        // Modo oscuro
+    'darkMode',       // Modo oscuro
+    'pagination'      // Sistema de paginación
 ];
 ```
 
@@ -218,9 +220,46 @@ FakeStore/
 - **DevTools** para inspeccionar elementos
 - **LocalStorage** para verificar persistencia
 
+## 📄 **Sistema de Paginación**
+
+### **Características Principales**
+- **6 productos por página** para mejor rendimiento
+- **Navegación intuitiva** con botones Anterior/Siguiente
+- **Números de página** clickeables
+- **Información contextual** (ej: "Mostrando 1-6 de 20 productos")
+- **Scroll automático** hacia arriba al cambiar página
+- **Integración completa** con filtros y búsqueda
+
+### **Funcionalidades Técnicas**
+- **Cálculo automático** del total de páginas
+- **Navegación directa** a página específica
+- **Estado persistente** de página actual
+- **Responsive design** para móviles
+- **Sin recarga** de página
+- **Máximo 5 páginas** visibles en navegación
+
+### **Uso del Usuario**
+1. **Navegar con botones:** Anterior/Siguiente
+2. **Ir a página específica:** Hacer clic en número
+3. **Ver información:** Productos mostrados vs. total
+4. **Filtros activos:** La paginación respeta filtros aplicados
+
+### **Implementación Técnica**
+```javascript
+// Propiedades de paginación
+this.currentPage = 1;           // Página actual
+this.productsPerPage = 6;       // Productos por página
+this.totalPages = 1;            // Total de páginas
+
+// Funciones principales
+calculatePagination()           // Calcula total de páginas
+updatePaginationControls()      // Actualiza controles visuales
+goToPage(pageNumber)           // Navega a página específica
+nextPage() / previousPage()    // Navegación secuencial
+```
+
 ## 🔮 Futuras Mejoras
 
-- **Paginación** de productos
 - **Exportación** de datos
 - **Más filtros** avanzados
 - **Sistema de usuarios**
