@@ -109,6 +109,24 @@
                     <i class="fas fa-search"></i>
                     <p>No se encontraron productos</p>
                 </div>
+                
+                <!-- CONTROLES DE PAGINACIÓN -->
+                <div class="pagination-controls" id="paginationControls" style="display: none;">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">Mostrando 1-6 de 0 productos</span>
+                    </div>
+                    <div class="pagination-buttons">
+                        <button id="prevPageBtn" class="pagination-btn" onclick="app.previousPage()" disabled>
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </button>
+                        <div class="page-numbers" id="pageNumbers">
+                            <!-- Los números de página se renderizarán aquí -->
+                        </div>
+                        <button id="nextPageBtn" class="pagination-btn" onclick="app.nextPage()" disabled>
+                            Siguiente <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
             </section>
         </div>
     </main>

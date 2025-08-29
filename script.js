@@ -12,7 +12,8 @@ const ACTIVATE_FEATURES = [
     'viewed',         // Historial de productos vistos
     'coupons',        // Sistema de cupones
     'notifications',  // Sistema de notificaciones
-    'darkMode'        // Modo oscuro
+    'darkMode',       // Modo oscuro
+    'pagination'      // Sistema de paginación
 ];
 
 // ========================================
@@ -31,6 +32,11 @@ class FakeStoreApp {
             sort: '',
             maxPrice: 1000
         };
+        
+        // Propiedades de paginación
+        this.currentPage = 1;
+        this.productsPerPage = 6;
+        this.totalPages = 1;
         
         // Inicializar funcionalidades según configuración
         this.initializeFeatures();
@@ -121,6 +127,10 @@ class FakeStoreApp {
         if (ACTIVATE_FEATURES.includes('notifications')) {
             this.notifications = [];
             this.setupNotificationSystem();
+        }
+        
+        if (ACTIVATE_FEATURES.includes('pagination')) {
+            this.setupPaginationSystem();
         }
     }
 
@@ -302,6 +312,7 @@ class FakeStoreApp {
         }
 
         this.filteredProducts = filtered;
+        this.currentPage = 1; // Resetear a la primera página cuando se aplican filtros
         this.renderProducts();
     }
 
@@ -314,13 +325,27 @@ class FakeStoreApp {
         if (this.filteredProducts.length === 0) {
             productsGrid.innerHTML = '';
             if (noProducts) noProducts.style.display = 'block';
+            this.hidePagination();
             return;
         }
 
         if (noProducts) noProducts.style.display = 'none';
-        productsGrid.innerHTML = this.filteredProducts.map(product => 
+        
+        // Calcular paginación
+        this.calculatePagination();
+        
+        // Obtener productos de la página actual
+        const startIndex = (this.currentPage - 1) * this.productsPerPage;
+        const endIndex = startIndex + this.productsPerPage;
+        const currentPageProducts = this.filteredProducts.slice(startIndex, endIndex);
+        
+        // Renderizar productos de la página actual
+        productsGrid.innerHTML = currentPageProducts.map(product => 
             this.createProductCard(product)
         ).join('');
+        
+        // Actualizar controles de paginación
+        this.updatePaginationControls();
     }
 
     createProductCard(product) {
@@ -759,6 +784,121 @@ class FakeStoreApp {
         return starsHTML;
     }
     
+    // ========================================
+    // MÓDULO DE PAGINACIÓN
+    // ========================================
+    
+    calculatePagination() {
+        this.totalPages = Math.ceil(this.filteredProducts.length / this.productsPerPage);
+        
+        // Asegurar que la página actual sea válida
+        if (this.currentPage > this.totalPages) {
+            this.currentPage = this.totalPages || 1;
+        }
+    }
+    
+    updatePaginationControls() {
+        const paginationControls = document.getElementById('paginationControls');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const pageNumbers = document.getElementById('pageNumbers');
+        
+        if (!paginationControls || !paginationInfo || !prevPageBtn || !nextPageBtn || !pageNumbers) return;
+        
+        // Mostrar controles solo si hay más de una página
+        if (this.totalPages <= 1) {
+            this.hidePagination();
+            return;
+        }
+        
+        paginationControls.style.display = 'block';
+        
+        // Actualizar información de paginación
+        const startIndex = (this.currentPage - 1) * this.productsPerPage + 1;
+        const endIndex = Math.min(this.currentPage * this.productsPerPage, this.filteredProducts.length);
+        paginationInfo.textContent = `Mostrando ${startIndex}-${endIndex} de ${this.filteredProducts.length} productos`;
+        
+        // Actualizar botones de navegación
+        prevPageBtn.disabled = this.currentPage <= 1;
+        nextPageBtn.disabled = this.currentPage >= this.totalPages;
+        
+        // Generar números de página
+        this.generatePageNumbers(pageNumbers);
+    }
+    
+    generatePageNumbers(pageNumbersContainer) {
+        const maxVisiblePages = 5; // Máximo número de páginas visibles
+        let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
+        
+        // Ajustar si no hay suficientes páginas
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        let pageNumbersHTML = '';
+        
+        // Primera página
+        if (startPage > 1) {
+            pageNumbersHTML += `<span class="page-number" onclick="app.goToPage(1)">1</span>`;
+            if (startPage > 2) {
+                pageNumbersHTML += `<span class="page-number disabled">...</span>`;
+            }
+        }
+        
+        // Páginas intermedias
+        for (let i = startPage; i <= endPage; i++) {
+            const isActive = i === this.currentPage;
+            const activeClass = isActive ? 'active' : '';
+            pageNumbersHTML += `<span class="page-number ${activeClass}" onclick="app.goToPage(${i})">${i}</span>`;
+        }
+        
+        // Última página
+        if (endPage < this.totalPages) {
+            if (endPage < this.totalPages - 1) {
+                pageNumbersHTML += `<span class="page-number disabled">...</span>`;
+            }
+            pageNumbersHTML += `<span class="page-number" onclick="app.goToPage(${this.totalPages})">${this.totalPages}</span>`;
+        }
+        
+        pageNumbersContainer.innerHTML = pageNumbersHTML;
+    }
+    
+    goToPage(pageNumber) {
+        if (pageNumber < 1 || pageNumber > this.totalPages || pageNumber === this.currentPage) {
+            return;
+        }
+        
+        this.currentPage = pageNumber;
+        this.renderProducts();
+        
+        // Hacer scroll suave hacia arriba
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+    
+    nextPage() {
+        if (this.currentPage < this.totalPages) {
+            this.goToPage(this.currentPage + 1);
+        }
+    }
+    
+    previousPage() {
+        if (this.currentPage > 1) {
+            this.goToPage(this.currentPage - 1);
+        }
+    }
+    
+    hidePagination() {
+        const paginationControls = document.getElementById('paginationControls');
+        if (paginationControls) {
+            paginationControls.style.display = 'none';
+        }
+    }
+    
     // MÓDULO 4: COMPARADOR DE PRODUCTOS
     setupProductComparison() {
         // console.log('⚖️ Sistema de comparación de productos activado');
@@ -824,6 +964,11 @@ class FakeStoreApp {
     // MÓDULO 6: SISTEMA DE NOTIFICACIONES
     setupNotificationSystem() {
         // console.log('🔔 Sistema de notificaciones activado');
+    }
+    
+    // MÓDULO 7: SISTEMA DE PAGINACIÓN
+    setupPaginationSystem() {
+        // console.log('📄 Sistema de paginación activado');
     }
     
     showNotification(message, type = 'info', duration = 3000) {
